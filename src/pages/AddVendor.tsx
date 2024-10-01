@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { db } from "../firebaseConfig"; // Import Firestore database
 import { collection, addDoc } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, increment } from 'firebase/firestore'; 
 import { storage } from "../firebaseConfig"; // Import Firebase Storage
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import storage functions
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
+import { useAuth } from '../context/AuthContext';
 
 const AddVendor: React.FC = () => {
   const [name, setName] = useState("");
@@ -15,7 +17,10 @@ const AddVendor: React.FC = () => {
   const [images, setImages] = useState<File[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<string>("");
   const [workingHours, setWorkingHours] = useState<string>("");
+  const [rating, setRating] = useState<number>(3); // Default rating is 3
+  const [cuisine, setCuisine] = useState<string>(""); // For cuisine type
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const handleDishChange = (index: number, field: string, value: string) => {
     const newDishes = [...dishes];
@@ -58,12 +63,20 @@ const AddVendor: React.FC = () => {
         images: imageUrls,
         paymentMethods,
         workingHours,
+        cuisine,
         createdAt: new Date(),
       };
 
       // Add vendor data to Firestore
       const vendorsCollection = collection(db, 'vendors');
-      await addDoc(vendorsCollection, vendorData);
+      const vendorDoc = await addDoc(vendorsCollection, vendorData);
+
+      // Update the user's points and vendorsAdded in Firestore
+    const userRef = doc(db, 'users', currentUser?.uid);
+    await updateDoc(userRef, {
+      points: increment(75), // Add 75 points for adding a vendor
+      vendorsAdded: increment(1) // Increment vendorsAdded by 1
+    });
       console.log('Vendor added:', vendorData);
       alert('Vendor added successfully!');
       navigate('/');
@@ -83,6 +96,10 @@ const AddVendor: React.FC = () => {
 
     return null;
   };
+
+  if(!currentUser) {
+    return <div>Sign in to add a vendor</div>;
+  }
 
   return (
     <div className="min-h-screen p-10">
@@ -128,6 +145,25 @@ const AddVendor: React.FC = () => {
             className="border border-gray-300 rounded p-2 w-full"
             required
           />
+        </div>
+        
+
+        {/* Cuisine Type */}
+        <div>
+          <label className="block mb-1">Cuisine Type:</label>
+          <select
+            value={cuisine}
+            onChange={(e) => setCuisine(e.target.value)}
+            className="border border-gray-300 rounded p-2 w-full"
+            required
+          >
+            <option value="">Select a cuisine</option>
+            <option value="Indian">Indian</option>
+            <option value="Chinese">Chinese</option>
+            <option value="Italian">Italian</option>
+            <option value="Mexican">Mexican</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
         <div>
           <h3 className="mb-2">Select Location:</h3>
