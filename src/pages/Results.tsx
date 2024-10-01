@@ -42,9 +42,13 @@ const Results: React.FC = () => {
         id: doc.id,
         ...doc.data(),
       }));
-      console.log('Vendors fetched:', vendorList);
-      setVendors(vendorList);
-      filterVendors(search, vendorList, searchType);
+
+      // Filter only vendors with approved status
+      const approvedVendors = vendorList.filter((vendor) => vendor.status === 'approved');
+      console.log('Approved vendors:', approvedVendors);
+
+      setVendors(approvedVendors);
+      filterVendors(search, approvedVendors, searchType);
     } catch (error) {
       console.error('Error fetching vendors: ', error);
     }
