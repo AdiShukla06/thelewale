@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 
+
 const AddVendor: React.FC = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -53,8 +54,8 @@ const AddVendor: React.FC = () => {
         const url = await getDownloadURL(storageRef);
         return url;
       }));
-
-      // Prepare vendor data with image URLs and location
+  
+      // Prepare vendor data with image URLs, location, and default "pending" status
       const vendorData = {
         name,
         description,
@@ -64,27 +65,31 @@ const AddVendor: React.FC = () => {
         paymentMethods,
         workingHours,
         cuisine,
+        status: 'pending', // Vendor status is set to pending initially
+        addedBy: currentUser?.uid,
         createdAt: new Date(),
       };
-
+  
       // Add vendor data to Firestore
       const vendorsCollection = collection(db, 'vendors');
       const vendorDoc = await addDoc(vendorsCollection, vendorData);
-
+  
       // Update the user's points and vendorsAdded in Firestore
-    const userRef = doc(db, 'users', currentUser?.uid);
-    await updateDoc(userRef, {
-      points: increment(75), // Add 75 points for adding a vendor
-      vendorsAdded: increment(1) // Increment vendorsAdded by 1
-    });
+      const userRef = doc(db, 'users', currentUser?.uid);
+      await updateDoc(userRef, {
+        points: increment(75), // Add 75 points for adding a vendor
+        vendorsAdded: increment(1) // Increment vendorsAdded by 1
+      });
+  
       console.log('Vendor added:', vendorData);
-      alert('Vendor added successfully!');
+      alert('Vendor added successfully! Waiting for admin approval.');
       navigate('/');
     } catch (error) {
       console.error('Error adding vendor:', error);
       alert('Failed to add vendor. Please try again.');
     }
   };
+  
 
   const MapClickHandler: React.FC<{ setLocation: (loc: { lat: number; lng: number }) => void }> = ({ setLocation }) => {
     useMapEvents({
