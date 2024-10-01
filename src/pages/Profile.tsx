@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { getDoc, doc } from 'firebase/firestore';
+
 
 interface UserData {
   name: string;
@@ -9,6 +11,12 @@ interface UserData {
   points: number;
   vendorsAdded: number;
   reviewsGiven: number;
+}
+
+interface VendorData {
+  id: string;
+  name: string;
+  status: string; // "pending", "approved", "rejected"
 }
 
 const badges = [
@@ -21,13 +29,15 @@ const badges = [
 const Profile: React.FC = () => {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userVendors, setUserVendors] = useState<VendorData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (currentUser?.uid) {
-        const userDoc = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userDoc);
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userDocRef);
         if (userSnap.exists()) {
           setUserData(userSnap.data() as UserData);
         }
@@ -35,6 +45,26 @@ const Profile: React.FC = () => {
       setLoading(false);
     };
     fetchUserData();
+  }, [currentUser]);
+
+  // Fetch vendors added by the current user
+  useEffect(() => {
+    const fetchUserVendors = async () => {
+      if (currentUser?.uid) {
+        const vendorsQuery = query(
+          collection(db, 'vendors'),
+          where('addedBy', '==', currentUser.uid) // Fetch vendors added by the current user
+        );
+        const vendorSnap = await getDocs(vendorsQuery);
+        const vendors = vendorSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as VendorData),
+        }));
+        setUserVendors(vendors);
+      }
+    };
+
+    fetchUserVendors();
   }, [currentUser]);
 
   const getBadge = (points: number) => {
@@ -46,7 +76,7 @@ const Profile: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  if(!currentUser) {
+  if (!currentUser) {
     return <div>Sign in to view your profile</div>;
   }
 
@@ -90,6 +120,22 @@ const Profile: React.FC = () => {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* User's Vendors */}
+      <div className="mt-6 p-4 border rounded">
+        <h2 className="text-xl mb-2">Your Vendors:</h2>
+        {userVendors.length > 0 ? (
+          <ul className="list-disc ml-5">
+            {userVendors.map((vendor) => (
+              <li key={vendor.id}>
+                <strong>{vendor.name}</strong> - Status: <span className={vendor.status === 'approved' ? 'text-green-500' : vendor.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'}>{vendor.status}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>You haven't added any vendors yet.</p>
+        )}
       </div>
     </div>
   );
