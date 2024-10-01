@@ -7,6 +7,7 @@ import AddVendor from './pages/AddVendor';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Header from './components/Header';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/add-vendor" element={<AddVendor />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );
