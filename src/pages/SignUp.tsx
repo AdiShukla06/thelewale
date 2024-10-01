@@ -38,6 +38,7 @@ const SignUp: React.FC = () => {
         points: 0, // Initialize points to 0
         vendorsAdded: 0, // Array to store vendor IDs the user adds
         reviewsGiven: 0, // Array to store reviews given by the user
+        role: "user", // Set the role to user
       });
 
       // Redirect to profile page after sign-up
