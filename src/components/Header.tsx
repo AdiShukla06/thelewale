@@ -14,7 +14,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-gray-100 shadow-md">
-      <Link to="/">
+      <Link to="/home">
         <h1 className="text-xl font-bold">Thelewale</h1>
       </Link>
       <div>
