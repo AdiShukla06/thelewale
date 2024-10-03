@@ -78,7 +78,7 @@ const Admin: React.FC = () => {
   }
 
   if (!currentUser) {
-    return <div>Please <a href="/login">log in</a> to access the admin page.</div>;
+    return <div>Please sign in to access the admin page.</div>;
   }
 
   if (!isAdmin) {
