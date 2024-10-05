@@ -1,16 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { collection, getDocs } from 'firebase/firestore'; // Firebase imports
-import { db } from '../firebaseConfig'; // Firebase config
-import Fuse from 'fuse.js';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { collection, getDocs } from "firebase/firestore"; // Firebase imports
+import { db } from "../firebaseConfig"; // Firebase config
+import Fuse from "fuse.js";
+import NumberTicker from "@/components/ui/number-ticker";
+import Marquee from "@/components/ui/marquee"; // Updated import for Marquee
+import Hero from "@/components/Hero";
+import ShinyButton from "@/components/ui/shiny-button";
+import TextReveal from "@/components/ui/text-reveal";
+import { motion } from "framer-motion";
 
 const DEFAULT_LOCATION = { lat: 28.6139, lng: 77.209 }; // Delhi coordinates
-const OPENWEATHER_API_KEY = 'f4261c8d6a89220dd425fa02df5780f4'; // Replace with your OpenWeather API key
+const OPENWEATHER_API_KEY = "f4261c8d6a89220dd425fa02df5780f4"; // Replace with your OpenWeather API key
 
 const Landing: React.FC = () => {
-  const [dishSearchTerm, setDishSearchTerm] = useState('');
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [nearbyVendors, setNearbyVendors] = useState<any[]>([]); // To store nearby vendors
   const navigate = useNavigate();
@@ -23,35 +31,44 @@ const Landing: React.FC = () => {
       );
       setWeatherData(response.data);
     } catch (error) {
-      console.error('Error fetching weather data:', error);
+      console.error("Error fetching weather data:", error);
     }
   };
 
   // Fetch vendors from Firebase
   const fetchVendors = async () => {
-    const vendorsCollection = collection(db, 'vendors');
+    const vendorsCollection = collection(db, "vendors");
     try {
       const vendorSnapshot = await getDocs(vendorsCollection);
       const vendorList = vendorSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      const approvedVendors = vendorList.filter((vendor) => vendor.status === 'approved');
+      const approvedVendors = vendorList.filter(
+        (vendor) => vendor.status === "approved"
+      );
       filterNearbyVendors(approvedVendors);
     } catch (error) {
-      console.error('Error fetching vendors: ', error);
+      console.error("Error fetching vendors: ", error);
     }
   };
 
   // Calculate distance between two coordinates
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const calculateDistance = (
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ) => {
     const R = 6371; // Radius of the Earth in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLng = (lng2 - lng1) * (Math.PI / 180);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -63,7 +80,12 @@ const Landing: React.FC = () => {
         const vendorLat = vendor.location?.lat;
         const vendorLng = vendor.location?.lng;
         if (vendorLat && vendorLng) {
-          const distance = calculateDistance(userLocation.lat, userLocation.lng, vendorLat, vendorLng);
+          const distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            vendorLat,
+            vendorLng
+          );
           return distance <= 30; // Show vendors within 30 km
         }
         return false;
@@ -91,14 +113,6 @@ const Landing: React.FC = () => {
     }
   };
 
-  // Handle dish search
-  const handleDishSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (dishSearchTerm) {
-      navigate(`/results?dish=${dishSearchTerm}`);
-    }
-  };
-
   // Fetch weather and vendors when the component mounts or user location changes
   useEffect(() => {
     if (userLocation) {
@@ -112,40 +126,72 @@ const Landing: React.FC = () => {
     requestLocationPermission();
   }, []);
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      {/* Hero Section */}
-      <section className="w-full h-screen flex flex-col items-center justify-center bg-blue-100">
-        <h1 className="text-5xl font-bold mb-4">Thelewale</h1>
+  // Vendor card component for displaying vendor details
+  const VendorCard = ({
+    id,
+    name,
+    description,
 
-        {/* Dish Search */}
-        <form onSubmit={handleDishSearch} className="w-1/2 flex justify-center space-x-2 mb-4">
-          <input
-            type="text"
-            value={dishSearchTerm}
-            onChange={(e) => setDishSearchTerm(e.target.value)}
-            placeholder="Search for dishes..."
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Search Dishes
-          </button>
-        </form>
-      </section>
+    location,
+  }: {
+    id: string;
+    name: string;
+    description: string;
+    location: { lat: number; lng: number };
+  }) => {
+    const distance =
+      userLocation && location
+        ? calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            location.lat,
+            location.lng
+          ).toFixed(2) + " km"
+        : "Location unavailable";
+
+    return (
+      <div className="w-80 bg-gray-950 rounded-xl p-4 shadow-lg hover:bg-gray-900">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mr-3 "></div>
+          <div>
+            <h3 className="text-white font-semibold">{name}</h3>
+            <p className="text-gray-400 text-sm text-left">{distance}</p>
+          </div>
+        </div>
+        <p className="text-white mb-3 text-left">{description}</p>
+
+        <div className="" onClick={() => navigate(`/vendor/${id}`)}>
+          <ShinyButton>View Details</ShinyButton>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <motion.div className="min-h-screen flex flex-col items-center justify-center bg-black"
+    initial={{ opacity: 0.8 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 1 }}>
+      {/* Hero Section */}
+      <Hero />
 
       {/* Weather-based Suggestions */}
-      <section className="w-full p-10 bg-gray-100 text-center">
+      <section className="w-full p-10 text-center text-white font-inter mt-20">
         {weatherData ? (
           <>
             <h2 className="text-2xl mb-6">
-              It is {weatherData.main.temp}°C and {weatherData.main.humidity}% humid in{' '}
-              {weatherData.name || 'Delhi'}
+              It is{" "}
+              <NumberTicker
+                className="text-white"
+                value={weatherData.main.temp}
+              />
+              °C and{" "}
+              <NumberTicker
+                className="text-white"
+                value={weatherData.main.humidity}
+              />
+              % humid in {weatherData.name || "Delhi"}
             </h2>
-
-            {/* Conditional message based on temperature */}
             {weatherData.main.temp < 20 && (
               <p className="text-lg mb-4">
                 It's quite cold, perfect weather to enjoy some hot soups!
@@ -158,7 +204,8 @@ const Landing: React.FC = () => {
             )}
             {weatherData.main.temp > 30 && (
               <p className="text-lg mb-4">
-                It's hot outside! Cool down with some refreshing cold drinks and light food.
+                It's hot outside! Cool down with some refreshing cold drinks and
+                light food.
               </p>
             )}
           </>
@@ -168,46 +215,39 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Nearby Vendors Section */}
-      <section className="w-full p-10 bg-white text-center">
+      <section className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg p-10 text-center text-white font-inter mt-24">
         <h2 className="text-2xl mb-6">Vendors Near You</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {nearbyVendors.length > 0 ? (
-            nearbyVendors.map((vendor) => (
-              <div key={vendor.id} className="bg-white p-4 rounded shadow">
-                <h3 className="font-bold text-xl">{vendor.name}</h3>
-                <p>{vendor.description}</p>
-                <p>Rating: {vendor.rating}</p>
-                <p>
-                  Distance: {userLocation && vendor.location ? (
-                    calculateDistance(userLocation.lat, userLocation.lng, vendor.location.lat, vendor.location.lng).toFixed(2) + ' km'
-                  ) : (
-                    'Location unavailable'
-                  )}
-                </p>
-                <button
-                  onClick={() => navigate(`/vendor/${vendor.id}`)}
-                  className="bg-green-500 text-white px-4 py-2 rounded mt-2"
-                >
-                  View Details
-                </button>
-              </div>
-            ))
-          ) : (
-            <p>No nearby vendors found.</p>
-          )}
-        </div>
+
+        <Marquee pauseOnHover className="[--duration:20s]">
+          {nearbyVendors.slice(0, nearbyVendors.length / 2).map((vendor) => (
+            <VendorCard
+              key={vendor.id}
+              {...vendor}
+              userLocation={userLocation}
+            />
+          ))}
+        </Marquee>
+
+        <Marquee reverse pauseOnHover className="[--duration:20s]">
+          {nearbyVendors.slice(nearbyVendors.length / 2).map((vendor) => (
+            <VendorCard key={vendor.id} {...vendor} />
+          ))}
+        </Marquee>
       </section>
 
       {/* Add Vendor Section */}
-      <section className="w-full p-10 bg-white text-center">
-        <button
-          onClick={() => navigate('/add-vendor')}
-          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700"
-        >
-          Add New Vendor
-        </button>
-      </section>
-    </div>
+      <section className="w-full p-10 text-center">
+  {/* Magic UI TextReveal for the heading */}
+  <div>
+    <TextReveal text="Do you know a momo wali aunty? Add her now!" />
+  </div>
+  
+  {/* ShinyButton for adding a new vendor */}
+  {/* <div className="text-white" onClick={() => navigate(`/add-vendor`)}>
+          <ShinyButton>Add Vendor</ShinyButton>
+        </div> */}
+</section>
+    </motion.div>
   );
 };
 
