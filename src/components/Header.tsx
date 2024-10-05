@@ -2,6 +2,21 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { signOut, auth } from '../firebaseConfig';
+import logo from '../assets/logowhitebg.png';
+import ShimmerButton from "@/components/ui/shimmer-button";
+
+export function ShimmerButtonDemo() {
+  return (
+    <div className=" flex items-center justify-center">
+      <ShimmerButton className="shadow-2xl">
+        <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-sm font-inter">
+          Sign In
+        </span>
+      </ShimmerButton>
+    </div>
+  );
+}
+
 
 const Header: React.FC = () => {
   const { currentUser } = useAuth();
@@ -13,9 +28,9 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex justify-between items-center p-4 bg-gray-100 shadow-md">
+    <header className="fixed top-0 left-0 w-full z-10 flex justify-between items-center px-4 bg-transparent">
       <Link to="/home">
-        <h1 className="text-xl font-bold">Thelewale</h1>
+      <img src={logo} alt="Thelewale Logo" className="w-20 h-20" />
       </Link>
       <div>
         {currentUser ? (
@@ -30,8 +45,8 @@ const Header: React.FC = () => {
             </button>
           </div>
         ) : (
-          <Link to="/signin" className="text-blue-500 hover:underline">
-            Sign In
+          <Link to="/signin">
+            <ShimmerButtonDemo />
           </Link>
         )}
       </div>
