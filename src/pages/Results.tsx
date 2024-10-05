@@ -119,7 +119,7 @@ const Results: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-10">
+    <div className="min-h-screen p-10 m-10">
       {/* Search Bar */}
       <div className="flex justify-center mb-4">
         <input
