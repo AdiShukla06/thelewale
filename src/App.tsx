@@ -10,6 +10,9 @@ import Header from './components/Header';
 import Admin from './pages/Admin';
 import Footer from './components/Footer';
 import PreLanding from './pages/PreLanding';
+import { AnimatePresence } from 'framer-motion';
+import ScrollToTop from './components/ScrollToTop';
+import About from './pages/About';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -19,20 +22,25 @@ const App: React.FC = () => {
 
   return (
     <>
+      <ScrollToTop/>
       {/* Conditionally render Header if not on PreLanding page */}
       {!isPreLandingPage && <Header />}
-      
-      <Routes>
-        <Route path="/" element={<PreLanding />} />
-        <Route path="/home" element={<Landing />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/vendor/:id" element={<VendorDetails />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/add-vendor" element={<AddVendor />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/admin" element={<Admin />} />
-      </Routes>
+
+      {/* Animate only the pages */}
+      <AnimatePresence mode='wait'> 
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PreLanding />} />
+          <Route path="/home" element={<Landing />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/vendor/:id" element={<VendorDetails />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/add-vendor" element={<AddVendor />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/about" element={<About/>} />
+        </Routes>
+      </AnimatePresence>
 
       {/* Conditionally render Footer if not on PreLanding page */}
       {!isPreLandingPage && <Footer />}
