@@ -48,7 +48,7 @@ export const TextRevealByWord: FC<TextRevealByWordProps> = ({
           })}
         </p>
         <div className="flex justify-center items-center" onClick={() => navigate(`/add-vendor`)}>
-        <PulsatingButton className="w-40">Add Vendor</PulsatingButton>;
+        <PulsatingButton className="text-xs w-20 md:w-40">Add Vendor</PulsatingButton>;
         </div>
       </div>
     </div>
