@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../firebaseConfig';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext';
-import { getDoc, doc } from 'firebase/firestore';
-
+import React, { useEffect, useState } from "react";
+import { db } from "../firebaseConfig";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+} from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
+import Modal from "@/components/ui/modal";
+import { BsTrophyFill } from "react-icons/bs"; // Icon for badge
+import { FaMedal } from "react-icons/fa"; // Icon for points
+import { motion } from "framer-motion";
 
 interface UserData {
   name: string;
@@ -20,10 +29,10 @@ interface VendorData {
 }
 
 const badges = [
-  { name: 'Newbie', minPoints: 0 },
-  { name: 'Contributor', minPoints: 100 },
-  { name: 'Vendor Specialist', minPoints: 250 },
-  { name: 'Food Guru', minPoints: 500 },
+  { name: "Newbie", minPoints: 0, color: "bg-gray-500" },
+  { name: "Contributor", minPoints: 100, color: "bg-blue-500" },
+  { name: "Vendor Specialist", minPoints: 250, color: "bg-green-500" },
+  { name: "Food Guru", minPoints: 500, color: "bg-yellow-500" },
 ];
 
 const Profile: React.FC = () => {
@@ -31,12 +40,13 @@ const Profile: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userVendors, setUserVendors] = useState<VendorData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showBadgeInfo, setShowBadgeInfo] = useState(false);
 
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (currentUser?.uid) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocRef = doc(db, "users", currentUser.uid);
         const userSnap = await getDoc(userDocRef);
         if (userSnap.exists()) {
           setUserData(userSnap.data() as UserData);
@@ -52,8 +62,8 @@ const Profile: React.FC = () => {
     const fetchUserVendors = async () => {
       if (currentUser?.uid) {
         const vendorsQuery = query(
-          collection(db, 'vendors'),
-          where('addedBy', '==', currentUser.uid) // Fetch vendors added by the current user
+          collection(db, "vendors"),
+          where("addedBy", "==", currentUser.uid)
         );
         const vendorSnap = await getDocs(vendorsQuery);
         const vendors = vendorSnap.docs.map((doc) => ({
@@ -68,76 +78,145 @@ const Profile: React.FC = () => {
   }, [currentUser]);
 
   const getBadge = (points: number) => {
-    const badge = badges.reduce((acc, curr) => (points >= curr.minPoints ? curr : acc), badges[0]);
-    return badge.name;
+    const badge = badges.reduce(
+      (acc, curr) => (points >= curr.minPoints ? curr : acc),
+      badges[0]
+    );
+    return badge;
   };
 
+  const BadgeInfoModal = () => (
+    <Modal isOpen={showBadgeInfo} onClose={() => setShowBadgeInfo(false)}>
+      <h2 className="text-2xl mb-4">Points and Badge System</h2>
+      <p>Earn points and unlock badges:</p>
+      <ul className="list-disc ml-5">
+        <li>
+          Add a vendor: <strong>+75 points</strong>
+        </li>
+        <li>
+          Give a review: <strong>+10 points</strong>
+        </li>
+      </ul>
+      <h3 className="mt-4">Badges:</h3>
+      <ul className="list-disc ml-5">
+        {badges.map((badge) => (
+          <li key={badge.name} className="mb-2">
+            <strong>{badge.name}</strong> - Earned at {badge.minPoints} points
+          </li>
+        ))}
+      </ul>
+    </Modal>
+  );
+
   if (loading) {
-    return <div>Loading...</div>;
+    <div className="min-h-screen bg-black flex justify-center items-center">
+      <div className="text-white font-inter">Loading...</div>
+    </div>;
   }
 
   if (!currentUser) {
-    return <div>Sign in to view your profile</div>;
+    return (
+      <div className="min-h-screen bg-black flex justify-center items-center">
+        <div className="text-white font-inter">Sign in to view your profile</div>
+      </div>
+    );
   }
-
+  
   if (!userData) {
-    return <div>No user data available</div>;
+    return (
+      <div className="min-h-screen bg-black flex justify-center items-center">
+        <div className="text-white font-inter">No user data available</div>
+      </div>
+    );
   }
+  
+
+  const badge = getBadge(userData.points);
 
   return (
-    <div className="min-h-screen p-10">
-      <h1 className="text-2xl mb-4">Profile</h1>
+    <motion.div className="min-h-screen bg-black text-white p-10 font-inter"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.5 }}>
+      <h1 className="text-3xl sm:text-4xl mb-10 text-center mt-14 sm:mt-10">Namaste {currentUser.displayName}🙏</h1>
 
-      {/* User Details */}
-      <div className="mb-4 p-4 border rounded">
-        <p><strong>Name:</strong> {userData.name}</p>
-        <p><strong>Email:</strong> {userData.email}</p>
-        <p><strong>Points:</strong> {userData.points}</p>
-        <p><strong>Vendors Added:</strong> {userData.vendorsAdded}</p>
-        <p><strong>Reviews Given:</strong> {userData.reviewsGiven}</p>
+
+      {/* Badge Section */}
+      <div className="mb-10 p-6 rounded-lg shadow-md flex items-center">
+        <div
+          className={`p-4 rounded-full text-xl ${badge.color} flex items-center justify-center`}
+        >
+          <BsTrophyFill />
+        </div>
+        <div className="ml-4">
+          <h2 className="text-2xl font-semibold">Your Badge:</h2>
+          <p className="text-lg font-bold">{badge.name}</p>
+        </div>
       </div>
 
-      {/* Badge */}
-      <div className="mb-4 p-4 border rounded">
-        <h2 className="text-xl mb-2">Your Badge:</h2>
-        <p className="text-lg font-bold">{getBadge(userData.points)}</p>
+
+      {/* User Details Section */}
+      <div className=" mb-10 p-6 rounded-lg shadow-md">
+        <p className="mb-2 ">
+          <strong className="text-3xl sm:text-5xl">WHAT IS YOUR NAME</strong> <span className="text-red-400">{userData.name} </span>
+        </p>
+        <p className="mb-2">
+          <strong className="text-3xl sm:text-5xl">WHAT IS YOUR EMAIL</strong>  <span className="text-red-400">{userData.email} </span>
+        </p>
+        <p className="mb-2">
+          <strong className="text-3xl sm:text-5xl">HOW MANY POINTS DO YOU HAVE</strong>  <span className="text-red-400">{userData.points} </span>
+        </p>
+        <p className="mb-2">
+          <strong className="text-3xl sm:text-5xl">HOW MANY VENDORS HAVE YOU ADDED</strong>  <span className="text-red-400">{userData.vendorsAdded} </span>
+        </p>
+        <p className="mb-2">
+          <strong className="text-3xl sm:text-5xl">HOW MANY REVIEWS HAVE YOU GIVEN</strong> <span className="text-red-400"> {userData.reviewsGiven}</span>
+        </p>
       </div>
 
-      {/* Points and Badges Info */}
-      <div className="p-4 border rounded">
-        <h2 className="text-xl mb-2">Points and Badge System</h2>
-        <p>Earn points and unlock badges:</p>
-        <ul className="list-disc ml-5">
-          <li>Add a vendor: <strong>+75 points</strong></li>
-          <li>Give a review: <strong>+10 points</strong></li>
-        </ul>
+      
 
-        <h3 className="mt-4">Badges:</h3>
-        <ul className="list-disc ml-5">
-          {badges.map((badge) => (
-            <li key={badge.name}>
-              <strong>{badge.name}</strong> - Earned at {badge.minPoints} points
-            </li>
-          ))}
-        </ul>
+      {/* Show Badge Info */}
+      <div className="mb-10 p-6 rounded-lg shadow-md">
+        <button
+          onClick={() => setShowBadgeInfo(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+        >
+          View Points & Badge Info
+        </button>
       </div>
 
-      {/* User's Vendors */}
-      <div className="mt-6 p-4 border rounded">
-        <h2 className="text-xl mb-2">Your Vendors:</h2>
+      {/* User's Vendors Section */}
+      <div className="p-6  rounded-lg shadow-md">
+        <h2 className="text-xl mb-4 font-semibold">Your Vendors</h2>
         {userVendors.length > 0 ? (
           <ul className="list-disc ml-5">
             {userVendors.map((vendor) => (
-              <li key={vendor.id}>
-                <strong>{vendor.name}</strong> - Status: <span className={vendor.status === 'approved' ? 'text-green-500' : vendor.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'}>{vendor.status}</span>
+              <li key={vendor.id} className="mb-2">
+                <strong>{vendor.name}</strong> - Status:{" "}
+                <span
+                  className={
+                    vendor.status === "approved"
+                      ? "text-green-500"
+                      : vendor.status === "rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                  }
+                >
+                  {vendor.status}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p>You haven't added any vendors yet.</p>
+          <p>No vendors added yet.</p>
         )}
       </div>
-    </div>
+
+      {/* Badge Info Modal */}
+      {showBadgeInfo && <BadgeInfoModal />}
+    </motion.div>
   );
 };
 

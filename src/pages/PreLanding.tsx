@@ -31,9 +31,7 @@ function PreLanding() {
   const handleClick = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setIsTransitioning(true);
-    setTimeout(() => {
-      navigate("/home");
-    }, 1000); 
+    navigate('/home');
   };
 
   return (
@@ -46,9 +44,10 @@ function PreLanding() {
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
         }}
-        initial={{ opacity: 1 }} 
-        animate={{ opacity: isTransitioning ? 0 : 1 }} 
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
       >
         {/* Clickable motion div for scaling effect */}
         <motion.div
@@ -61,17 +60,7 @@ function PreLanding() {
         </motion.div>
       </motion.div>
 
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            className="black-transition"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          />
-        )}
-      </AnimatePresence>
+      
     </>
   );
 }
