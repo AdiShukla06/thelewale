@@ -128,7 +128,7 @@ function Hero() {
       type="text"
       value={dishSearchTerm}
       onChange={(e) => setDishSearchTerm(e.target.value)}
-      placeholder="Search for momos, pizza, biryani, or anything else..."
+      placeholder="Search for momos, burger, golgappe, or anything else..."
       className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm md:text-base"
     />
     

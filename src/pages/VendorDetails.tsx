@@ -10,7 +10,6 @@ import {
   orderBy,
   onSnapshot,
   updateDoc,
-  arrayUnion,
   increment,
 } from "firebase/firestore";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -34,7 +33,12 @@ const VendorDetails: React.FC = () => {
   useEffect(() => {
     const fetchVendorDetails = async () => {
       try {
-        const vendorDoc = doc(db, "vendors", id);
+        if (!id) {
+          console.error("Vendor ID is missing");
+          return;
+        }
+        
+        const vendorDoc = doc(db, "vendors", id as string);
         const vendorData = await getDoc(vendorDoc);
 
         if (vendorData.exists()) {
@@ -54,7 +58,12 @@ const VendorDetails: React.FC = () => {
 
   useEffect(() => {
     const fetchReviews = () => {
-      const reviewsCollection = collection(db, "vendors", id, "reviews");
+      if (!id) {
+        console.error("Vendor ID is missing");
+        return;
+      }
+      
+      const reviewsCollection = collection(db, "vendors", id as string, "reviews");
       const q = query(reviewsCollection, orderBy("createdAt", "desc"));
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -65,7 +74,7 @@ const VendorDetails: React.FC = () => {
         setReviews(reviewsList);
 
         const totalRating = reviewsList.reduce(
-          (acc, review) => acc + (review.rating || 0),
+          (acc, review) => acc + ((review as any).rating || 0),
           0
         );
         const avgRating = totalRating / reviewsList.length;
@@ -85,7 +94,7 @@ const VendorDetails: React.FC = () => {
     if (newReview.trim() === "" || newRating === 0) return;
 
     try {
-      const reviewsCollection = collection(db, "vendors", id, "reviews");
+      const reviewsCollection = collection(db, "vendors", id as string, "reviews");
       await addDoc(reviewsCollection, {
         content: newReview,
         createdAt: new Date(),
@@ -93,11 +102,15 @@ const VendorDetails: React.FC = () => {
         rating: newRating,
       });
 
-      const userRef = doc(db, "users", currentUser?.uid);
-      await updateDoc(userRef, {
-        points: increment(10),
-        reviewsGiven: increment(1),
-      });
+      if (currentUser?.uid) {
+        const userRef = doc(db, "users", currentUser.uid);
+        await updateDoc(userRef, {
+          points: increment(10),
+          reviewsGiven: increment(1),
+        });
+      } else {
+        console.error("User is not logged in, cannot update points and reviews.");
+      }
 
       setNewReview("");
       setNewRating(0);
@@ -182,16 +195,19 @@ const VendorDetails: React.FC = () => {
           Working Hours: {vendor.workingHours}
         </p>
         <div className="mt-6 sm:mt-10">
-          <MapContainer
-            center={[vendor.location.lat, vendor.location.lng]}
-            zoom={13}
-            style={{ height: "200px", width: "80%", maxWidth: "400px" }}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <Marker position={[vendor.location.lat, vendor.location.lng]}>
-              <Popup>{vendor.name}</Popup>
-            </Marker>
-          </MapContainer>
+        {vendor.location && (
+  <MapContainer
+    center={[vendor.location.lat, vendor.location.lng]}
+    zoom={13}
+    style={{ height: "200px", width: "80%", maxWidth: "400px" }}
+  >
+    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <Marker position={[vendor.location.lat, vendor.location.lng]}>
+      <Popup>{vendor.name}</Popup>
+    </Marker>
+  </MapContainer>
+)}
+
           <a
             href={googleMapsDirectionsUrl}
             target="_blank"

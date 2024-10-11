@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { collection, getDocs } from "firebase/firestore"; // Firebase imports
 import { db } from "../firebaseConfig"; // Firebase config
-import Fuse from "fuse.js";
 import NumberTicker from "@/components/ui/number-ticker";
 import Marquee from "@/components/ui/marquee"; // Updated import for Marquee
 import Hero from "@/components/Hero";
@@ -12,9 +11,36 @@ import TextReveal from "@/components/ui/text-reveal";
 import { motion } from "framer-motion";
 
 const DEFAULT_LOCATION = { lat: 28.6139, lng: 77.209 }; // Delhi coordinates
-const OPENWEATHER_API_KEY = "f4261c8d6a89220dd425fa02df5780f4"; // Replace with your OpenWeather API key
+const OPENWEATHER_API_KEY = "f4261c8d6a89220dd425fa02df5780f4"; // 
 
 const Landing: React.FC = () => {
+
+
+  interface Dish {
+    name: string;
+    price: string;
+  }
+  
+  interface Vendor {
+    addedBy: string;
+    createdAt: Date;
+    cuisine: string;
+    description: string;
+    dishes: Dish[];
+    images: string[];
+    location: {
+      lat: number;
+      lng: number;
+    };
+    name: string;
+    paymentMethods: string;
+    status: string;
+    workingHours: string;
+  }
+  
+
+
+
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -40,18 +66,21 @@ const Landing: React.FC = () => {
     const vendorsCollection = collection(db, "vendors");
     try {
       const vendorSnapshot = await getDocs(vendorsCollection);
-      const vendorList = vendorSnapshot.docs.map((doc) => ({
+      const vendorList: Vendor[] = vendorSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data(),
+        ...(doc.data() as Vendor), // Use the Vendor interface here
       }));
+      
       const approvedVendors = vendorList.filter(
         (vendor) => vendor.status === "approved"
       );
+      
       filterNearbyVendors(approvedVendors);
     } catch (error) {
       console.error("Error fetching vendors: ", error);
     }
   };
+  
 
   // Calculate distance between two coordinates
   const calculateDistance = (

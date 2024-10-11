@@ -4,7 +4,6 @@ import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import Fuse from "fuse.js";
 import { motion } from "framer-motion";
-import { RainbowButton } from "@/components/ui/rainbow-button";
 import ShinyButton from "@/components/ui/shiny-button";
 
 
@@ -20,6 +19,32 @@ const Results: React.FC = () => {
     lat: number;
     lng: number;
   } | null>(null);
+  
+
+  interface Dish {
+    name: string;
+    price: string;
+  }
+  
+  interface Vendor {
+    id: string;
+    addedBy: string;
+    createdAt: Date;
+    cuisine: string;
+    description: string;
+    dishes: Dish[];
+    images: string[];
+    location: {
+      lat: number;
+      lng: number;
+    };
+    name: string;
+    paymentMethods: string;
+    status: string;
+    workingHours: string;
+  }
+  
+
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -54,7 +79,7 @@ const Results: React.FC = () => {
       const vendorList = vendorSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as Vendor[]; // Cast to Vendor[]
 
       // Filter only vendors with approved status
       const approvedVendors = vendorList.filter(
