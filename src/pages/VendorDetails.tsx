@@ -269,7 +269,7 @@ const VendorDetails: React.FC = () => {
       <ul className="text-sm sm:text-base">
         {vendor.dishes.map((dish: any, index: number) => (
           <li key={index} className="mb-2">
-            {dish.name} - ${dish.price}
+            {dish.name} - ₹{dish.price}
           </li>
         ))}
       </ul>
