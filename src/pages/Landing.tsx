@@ -86,7 +86,7 @@ const Landing: React.FC = () => {
             vendorLat,
             vendorLng
           );
-          return distance <= 30; // Show vendors within 30 km
+          return distance <= 100; // Show vendors within 100 km
         }
         return false;
       });
@@ -216,7 +216,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Nearby Vendors Section */}
-      <section className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg p-10 text-center text-white font-inter mt-24">
+      <section className="relative flex  w-full flex-col items-center justify-center overflow-hidden rounded-lg p-10 text-center text-white font-inter mt-24">
         <h2 className="text-2xl mb-6">Vendors Near You</h2>
 
         <Marquee pauseOnHover className="[--duration:20s]">
