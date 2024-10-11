@@ -102,7 +102,7 @@ const Results: React.FC = () => {
 
     if (searchType === "dish") {
       const fuse = new Fuse(vendorList, {
-        keys: ["name", "description"],
+        keys: ["name", "description ", "cuisine", "dishes.name"  ],
         threshold: 0.3,
       });
       const results = fuse.search(query);
