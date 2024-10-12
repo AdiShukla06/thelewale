@@ -18,6 +18,15 @@ import { useAuth } from "../context/AuthContext";
 import { FaStar } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import L from 'leaflet';
+import markerIcon from '../assets/marker.png'; 
+
+const customIcon = L.icon({
+  iconUrl: markerIcon, // Path to your custom marker image
+  iconSize: [32, 32], // Adjust the size to fit your design
+  iconAnchor: [16, 32], // Adjust the anchor point to position it correctly on the map
+  popupAnchor: [0, -32], // Where the popup should appear relative to the icon
+});
 
 const VendorDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -202,7 +211,8 @@ const VendorDetails: React.FC = () => {
     style={{ height: "200px", width: "80%", maxWidth: "400px" }}
   >
     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-    <Marker position={[vendor.location.lat, vendor.location.lng]}>
+    <Marker position={[vendor.location.lat, vendor.location.lng]}
+    icon={customIcon} >
       <Popup>{vendor.name}</Popup>
     </Marker>
   </MapContainer>
@@ -299,7 +309,8 @@ const VendorDetails: React.FC = () => {
           style={{ height: "300px", width: "100%", maxWidth: "400px" }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[vendor.location.lat, vendor.location.lng]}>
+          <Marker position={[vendor.location.lat, vendor.location.lng]}
+          icon={customIcon} >
             <Popup>{vendor.name}</Popup>
           </Marker>
         </MapContainer>
