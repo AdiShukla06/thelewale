@@ -1,11 +1,11 @@
 import bgImage from '../assets/bg4.jpg';
 import '../index.css';  
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom'; 
 import { ArrowRightIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import AnimatedShinyText from "@/components/ui/animated-shiny-text";
-import { useState } from 'react'; 
+// import { useState } from 'react'; 
 
 export function AnimatedShinyTextDemo() {
   return (
@@ -26,11 +26,11 @@ export function AnimatedShinyTextDemo() {
 
 function PreLanding() {
   const navigate = useNavigate(); 
-  const [isTransitioning, setIsTransitioning] = useState(false); 
+  // const [isTransitioning, setIsTransitioning] = useState(false); 
 
   const handleClick = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setIsTransitioning(true);
+    // setIsTransitioning(true);
     navigate('/home');
   };
 

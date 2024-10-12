@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { db } from "../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
-import { doc, updateDoc, arrayUnion, increment } from 'firebase/firestore'; 
-import { storage } from "../firebaseConfig"; // Import Firebase Storage
+// import { collection, addDoc } from "firebase/firestore";
+import { doc, updateDoc, increment } from 'firebase/firestore'; 
+import { storage } from "../firebaseConfig"; 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; 
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
@@ -20,7 +20,7 @@ const AddVendor: React.FC = () => {
   const [images, setImages] = useState<File[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<string>("");
   const [workingHours, setWorkingHours] = useState<string>("");
-  const [rating, setRating] = useState<number>(3); // Default rating is 3
+  // const [rating, setRating] = useState<number>(3); // Default rating is 3
   const [cuisine, setCuisine] = useState<string>(""); // For cuisine type
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -28,7 +28,7 @@ const AddVendor: React.FC = () => {
 
 
   const handleDishChange = (index: number, field: string, value: string) => {
-    const newDishes = [...dishes];
+    const newDishes: any = [...dishes];
     newDishes[index][field] = value;
     setDishes(newDishes);
   };
@@ -76,15 +76,17 @@ const AddVendor: React.FC = () => {
       };
   
       // Add vendor data to Firestore
-      const vendorsCollection = collection(db, 'vendors');
-      const vendorDoc = await addDoc(vendorsCollection, vendorData);
+      // const vendorsCollection = collection(db, 'vendors');
+      // const vendorDoc = await addDoc(vendorsCollection, vendorData);
   
       // Update the user's points and vendorsAdded in Firestore
-      const userRef = doc(db, 'users', currentUser?.uid);
-      await updateDoc(userRef, {
-        points: increment(75), // Add 75 points for adding a vendor
-        vendorsAdded: increment(1) // Increment vendorsAdded by 1
-      });
+      if (currentUser?.uid) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          points: increment(75), // Add 75 points for adding a vendor
+          vendorsAdded: increment(1), // Increment vendorsAdded by 1
+        });
+      }
   
       console.log('Vendor added:', vendorData);
       alert('Vendor added successfully! Waiting for admin approval.');
@@ -164,7 +166,7 @@ const AddVendor: React.FC = () => {
       
 
       {/* Disable form if loading */}
-      <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto" disabled={loading}>
+      <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm mb-2">Vendor Name</label>

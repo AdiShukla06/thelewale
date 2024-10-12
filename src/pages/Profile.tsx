@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import Modal from "@/components/ui/modal";
 import { BsTrophyFill } from "react-icons/bs"; // Icon for badge
-import { FaMedal } from "react-icons/fa"; // Icon for points
+// import { FaMedal } from "react-icons/fa"; // Icon for points
 import { motion } from "framer-motion";
 
 interface UserData {
@@ -67,15 +67,16 @@ const Profile: React.FC = () => {
         );
         const vendorSnap = await getDocs(vendorsQuery);
         const vendors = vendorSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as VendorData),
-        }));
+          ...doc.data(), // Spread the rest of the data first
+          id: doc.id, // Override or ensure 'id' from doc.id
+        } as VendorData)); // Explicitly typecast the result
         setUserVendors(vendors);
       }
     };
-
+  
     fetchUserVendors();
   }, [currentUser]);
+  
 
   const getBadge = (points: number) => {
     const badge = badges.reduce(
